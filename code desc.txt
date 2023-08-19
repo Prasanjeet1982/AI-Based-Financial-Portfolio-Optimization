@@ -1,0 +1,101 @@
+**main.py**:
+This file serves as the entry point of your FastAPI application. It creates the FastAPI instance and defines a single route to handle portfolio optimization requests.
+
+```python
+from fastapi import FastAPI
+from fastapi import Request, Form
+from fastapi.responses import HTMLResponse
+from app import optimize_portfolio
+
+app = FastAPI()
+
+@app.post("/")
+async def optimize_portfolio_route(request: Request, tickers: str = Form(...)):
+    return await optimize_portfolio(request, tickers)
+```
+
+In this code:
+- We import the necessary modules from FastAPI.
+- We create a FastAPI instance called `app`.
+- We define a route using the `@app.post("/")` decorator. This route expects a POST request with a form field named `tickers` containing a comma-separated list of asset tickers.
+- The route handler function `optimize_portfolio_route` calls the `optimize_portfolio` function from the `app` module with the request and tickers as arguments.
+
+**data_collection.py**:
+This file contains the function responsible for fetching historical price data for the specified tickers.
+
+```python
+import yfinance as yf
+from pandas import DataFrame
+from typing import List
+
+def fetch_data(tickers: List[str], start: str, end: str) -> DataFrame:
+    try:
+        data = yf.download(tickers, start=start, end=end)['Adj Close']
+        return data
+    except Exception as e:
+        print(f"Error fetching data: {e}")
+        return None
+```
+
+In this code:
+- We import necessary modules and types.
+- The `fetch_data` function takes a list of tickers, start date, and end date as arguments.
+- It uses the `yfinance` library to download historical price data for the specified tickers between the specified dates.
+- If fetching data is successful, it returns the adjusted close price data as a DataFrame. If not, it returns `None`.
+
+**portfolio_optimization.py**:
+This file contains the main portfolio optimization logic and visualization code.
+
+```python
+import numpy as np
+import cvxpy as cp
+import matplotlib.pyplot as plt
+from io import StringIO
+from pandas import DataFrame
+
+def optimize_portfolio(request, tickers):
+    from data_collection import fetch_data
+
+    # Data Preprocessing
+    historical_data = fetch_data(tickers, start_date, end_date)
+    returns = historical_data.pct_change().dropna()
+    mean_returns = returns.mean()
+    cov_matrix = returns.cov()
+    risk_free_rate = 0.02
+
+    # Portfolio Optimization
+    # ... (Same as before)
+
+    # Visualization
+    # ... (Same as before)
+```
+
+In this code:
+- We import necessary modules and types.
+- The `optimize_portfolio` function takes the request object and tickers as arguments.
+- It imports the `fetch_data` function from the `data_collection` module.
+- The function continues with the data preprocessing, portfolio optimization, and visualization code, which you can refer to in the previous responses.
+
+**app.py**:
+This file connects everything together by creating the FastAPI application and defining the route.
+
+```python
+from fastapi import Request, Form
+from fastapi.responses import HTMLResponse
+from data_collection import fetch_data
+from portfolio_optimization import optimize_portfolio
+
+app = FastAPI()
+
+@app.post("/")
+async def optimize_portfolio_route(request: Request, tickers: str = Form(...)):
+    return await optimize_portfolio(request, tickers)
+```
+
+In this code:
+- We import the necessary modules from FastAPI, as well as the `fetch_data` and `optimize_portfolio` functions from the respective modules.
+- We create the FastAPI instance called `app`.
+- We define the same route using the `@app.post("/")` decorator as we did in `main.py`.
+- The route handler function `optimize_portfolio_route` calls the `optimize_portfolio` function with the request and tickers, as explained earlier.
+
+This modular structure helps organize your codebase into separate files, each responsible for a specific aspect of the application. It improves readability, maintainability, and the ability to reuse code across different parts of the application.
